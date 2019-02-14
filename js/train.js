@@ -14,35 +14,35 @@ function init() {
     scene.background = new THREE.Color(0x8FBCD4);
 
     initCamera();
-    initControls();
+    // initControls();
     initLights();
     initMeshes();
     initRenderer();
 
-    renderer.setAnimationLoop(() => {
+    var axesHelper = new THREE.AxesHelper(-40);
+    scene.add(axesHelper);
+    axesHelper = new THREE.AxesHelper(60);
+    scene.add(axesHelper);
 
+    renderer.setAnimationLoop(() => {
         update();
         render();
-
     });
 
 }
 
 function initCamera() {
 
-    camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 100);
-    camera.position.set(-5, 5, 7);
-
+    camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(-68, 70, 75);
+    camera.lookAt(scene.position)
 }
 
-function initControls() {
-
-    controls = new THREE.OrbitControls(camera, container);
-
-}
+// function initControls() {
+//     controls = new THREE.OrbitControls(camera, container);
+// }
 
 function initLights() {
-
     const ambientLight = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambientLight);
 
@@ -53,11 +53,76 @@ function initLights() {
     backLight.position.set(-10, 10, -10);
 
     scene.add(frontLight, backLight);
-
 }
 
 function initMeshes() {
+    initTrainMeshes();
+    initTerrainMeshes();
+}
 
+function initRenderer() {
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    // add the automatically created <canvas> element to the page
+    container.appendChild(renderer.domElement);
+
+}
+
+function update() {
+    moveTrain();
+    animateSmoke();
+}
+
+function moveTrain() {
+    var train = scene.children[TRAIN_INDEX];
+    train.position.x -= 0.020;
+    train.children[2].rotation.z += 0.020;
+    train.children[3].rotation.z += 0.020;
+    train.children[4].rotation.z += 0.020;
+    train.children[5].rotation.z += 0.020;
+
+    if (train.position.x <= -32.5) {
+        train.position.x = 32.5;
+    }
+}
+
+function animateSmoke() {
+    var smoke = scene.children[TRAIN_INDEX].children[7];
+    //smoke.applyMatrix(smoke.matrix.setPosition(1, 1, 1));
+    smoke.position.y += 0.020;
+    smoke.scale.x += 0.010;
+    smoke.scale.y += 0.010;
+    smoke.scale.z += 0.010;
+    if (smoke.position.y >= 5) {
+        smoke.position.set(-2, 0.9, 0);
+        smoke.scale.x = 1;
+        smoke.scale.y = 1;
+        smoke.scale.z = 1;
+    }
+}
+
+function render() {
+
+    renderer.render(scene, camera);
+
+}
+
+function onWindowResize() {
+
+    camera.aspect = container.clientWidth / container.clientHeight;
+
+    // update the camera's frustum
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(container.clientWidth, container.clientHeight);
+
+}
+
+function initTrainMeshes() {
     // create a Group to hold the pieces of the train
     const train = new THREE.Group();
     scene.add(train);
@@ -118,63 +183,27 @@ function initMeshes() {
     smoke.position.set(-2, 0.9, 0);
 
     train.add(smoke);
+    train.position.y = 1.5;
 }
 
-function initRenderer() {
+function initTerrainMeshes() {
+    //Add base terrain
+    const groudGeometry = new THREE.BoxBufferGeometry(65, 1, 60);
+    const groundMaterial = new THREE.MeshBasicMaterial({ color: 0xf4b942 }); // sand
+    const ground = new THREE.Mesh(groudGeometry, groundMaterial);
+    scene.add(ground);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-
-    renderer.setPixelRatio(window.devicePixelRatio);
-
-    // add the automatically created <canvas> element to the page
-    container.appendChild(renderer.domElement);
-
-}
-
-function update() {
-    moveTrain();
-    animateSmoke();
-}
-
-function moveTrain() {
-    scene.children[TRAIN_INDEX].position.x -= 0.005
-    scene.children[TRAIN_INDEX].children[2].rotation.z += 0.005
-    scene.children[TRAIN_INDEX].children[3].rotation.z += 0.005
-    scene.children[TRAIN_INDEX].children[4].rotation.z += 0.005
-    scene.children[TRAIN_INDEX].children[5].rotation.z += 0.005
-}
-
-function animateSmoke() {
-    var smoke = scene.children[TRAIN_INDEX].children[5];
-    smoke.applyMatrix(smoke.matrix.setPosition(1,1,1));
-    // smoke.position.y += 0.005
-    // smoke.scale.x += 0.005
-    // smoke.scale.y += 0.005
-    // smoke.scale.z += 0.005
-    // if (smoke.position.y >= 5) {
-    //     smoke.position.set(-2, 0.9, 0);
-    //     smoke.scale.x = 1;
-    //     smoke.scale.y = 1;
-    //     smoke.scale.z = 1;
-    // }
-}
-
-function render() {
-
-    renderer.render(scene, camera);
-
-}
-
-function onWindowResize() {
-
-    camera.aspect = container.clientWidth / container.clientHeight;
-
-    // update the camera's frustum
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(container.clientWidth, container.clientHeight);
-
+    const trackGeometry = new THREE.BoxBufferGeometry(65.2, 1, 0.5);
+    const trackMaterial = new THREE.MeshBasicMaterial({ color: 0x898989 }); // dark grey
+    var track1 = new THREE.Mesh(trackGeometry, trackMaterial);
+    track1.position.x = 0.1;
+    track1.position.z = 0.8;
+    scene.add(track1);
+      
+    var track2 = new THREE.Mesh(trackGeometry, trackMaterial);
+    track2.position.x = 0.1;
+    track2.position.z = -0.8;
+    scene.add(track2);
 }
 
 window.addEventListener('resize', onWindowResize);

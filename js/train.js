@@ -11,18 +11,18 @@ function init() {
     container = document.querySelector('#container');
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x8FBCD4);
+    scene.background = new THREE.Color('darksalmon');
 
     initCamera();
-    // initControls();
+    initControls();
     initLights();
     initMeshes();
     initRenderer();
 
-    var axesHelper = new THREE.AxesHelper(-40);
-    scene.add(axesHelper);
-    axesHelper = new THREE.AxesHelper(60);
-    scene.add(axesHelper);
+    //var axesHelper = new THREE.AxesHelper(-40);
+    //scene.add(axesHelper);
+    //axesHelper = new THREE.AxesHelper(60);
+    //scene.add(axesHelper);
 
     renderer.setAnimationLoop(() => {
         update();
@@ -38,9 +38,9 @@ function initCamera() {
     camera.lookAt(scene.position)
 }
 
-// function initControls() {
-//     controls = new THREE.OrbitControls(camera, container);
-// }
+function initControls() {
+    controls = new THREE.OrbitControls(camera, container);
+}
 
 function initLights() {
     const ambientLight = new THREE.AmbientLight(0xffffff, 1);
@@ -184,24 +184,49 @@ function initTrainMeshes() {
 
     train.add(smoke);
     train.position.y = 1.5;
+    train.position.x = 20;
 }
 
 function initTerrainMeshes() {
-    //Add base terrain
-    const groudGeometry = new THREE.BoxBufferGeometry(65, 1, 60);
+    var shape = new THREE.Shape();
+    
+    shape.moveTo( -2, -30 );
+    shape.lineTo( -2, 30);
+    shape.lineTo( 2, 30);
+    shape.lineTo( 2, 5);
+    shape.bezierCurveTo( -2, 5, -2, -5, 2, -5 );
+    shape.lineTo( 2, -30);
+    shape.lineTo( 2, -30);
+    
+    var extrudeSettings = {
+        steps: 2,
+        depth: 60,
+        bevelEnabled: false,
+    };
+
+    var groundGeometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
+    groundGeometry.rotateZ(Math.PI / 2);
+
     const groundMaterial = new THREE.MeshBasicMaterial({ color: 0xf4b942 }); // sand
-    const ground = new THREE.Mesh(groudGeometry, groundMaterial);
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.position.set(0, -2, -30);
     scene.add(ground);
 
-    const trackGeometry = new THREE.BoxBufferGeometry(65.2, 1, 0.5);
+    const waterGeometry = new THREE.BoxBufferGeometry(10, 3, 59);
+    const waterMaterial = new THREE.MeshBasicMaterial({ color: 'skyblue' }); // sand
+    const water = new THREE.Mesh(waterGeometry, waterMaterial);
+    water.position.set(0, -2.25, 0);
+    scene.add(water);
+
+    const trackGeometry = new THREE.BoxBufferGeometry(60.2, 1, 0.5);
     const trackMaterial = new THREE.MeshBasicMaterial({ color: 0x898989 }); // dark grey
     var track1 = new THREE.Mesh(trackGeometry, trackMaterial);
-    track1.position.x = 0.1;
+    track1.position.x = -0.5;
     track1.position.z = 0.8;
     scene.add(track1);
-      
+
     var track2 = new THREE.Mesh(trackGeometry, trackMaterial);
-    track2.position.x = 0.1;
+    track2.position.x = -0.5;
     track2.position.z = -0.8;
     scene.add(track2);
 }
